@@ -1,6 +1,6 @@
 {
   "name": "ts-proto-twirp",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Generate a TypeScript Twirp server using ts-proto",
   "main": "dist/index.js",
   "repository": "https://github.com/dtraft/ts-proto-twirp",
