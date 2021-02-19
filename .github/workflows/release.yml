@@ -1,4 +1,4 @@
-name: Package and Release
+name: Release
 on: workflow_dispatch
 jobs:
   release:
@@ -13,11 +13,11 @@ jobs:
       - run: npm ci
       - run: npm run build
       - name: "Automated Version Bump"
-          uses: "phips28/gh-action-bump-version@master"
-          with:
-            tag-prefix: ''
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: "phips28/gh-action-bump-version@master"
+        with:
+          tag-prefix: ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
