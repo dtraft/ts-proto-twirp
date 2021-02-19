@@ -1,19 +1,17 @@
-# ts-twirp
+# ts-proto-twirp
 
-[![Build Status](https://github.com/mitchlloyd/ts-twirp/workflows/ci/badge.svg)](https://github.com/mitchlloyd/ts-twirp/actions?query=workflow%3Aci+branch%3Amaster)
-
-ts-twirp is a TypeScript code generator for [Twirp](https://github.com/twitchtv/twirp) servers and clients.
+ts-proto-twirp is a TypeScript code generator for [Twirp](https://github.com/twitchtv/twirp) servers and clients.
 
 ## Make a Twirp Server
 
-Install `ts-twirp`.
+Install `ts-proto-twirp`.
 
 ```
-npm install --save-dev ts-twirp
+npm install --save-dev ts-proto-twirp
 ```
 
-ts-twirp takes an opinionated approach to file organization. Each protobuf
-file lives in its own directory and ts-twirp generates sibling files that you
+ts-proto-twirp takes an opinionated approach to file organization. Each protobuf
+file lives in its own directory and ts-proto-twirp generates sibling files that you
 can `.gitignore`.
 
 Place your server's protobuf file in its own directory.
@@ -24,10 +22,10 @@ Place your server's protobuf file in its own directory.
     service.proto
 ```
 
-Run `ts-twirp` on `service.proto`.
+Run `ts-proto-twirp` on `service.proto`.
 
 ```
-npx ts-twirp src/twirp/service.proto
+npx ts-proto-twirp src/twirp/service.proto
 ```
 
 This generates sibling files in the same directory.
@@ -36,8 +34,7 @@ This generates sibling files in the same directory.
 /src
   /twirp
     index.ts # Exports the code you'll use to implement your server
-    service.pb.d.ts # Protobuf types generated from your service.proto file
-    service.pb.ts # Runtime protobuf serialization/deserialization code
+    service.ts # ts-proto generated types and services
     service.proto # The service protobuf definition
     server.ts # Runtime TypeScript server code
 ```
@@ -51,7 +48,7 @@ import http from 'http';
 import { createHaberdasherHandler } from './twirp';
 
 const handler = createHaberdasherHandler({
-  async makeHat(size) {
+  async MakeHat(size) {
     return ({
       color: 'red',
       name: 'fancy hat',
@@ -78,7 +75,7 @@ async function run() {
     port: 8000,
   });
 
-  const hat = await haberdasher.makeHat({
+  const hat = await haberdasher.MakeHat({
     inches: 42
   });
 
@@ -99,7 +96,7 @@ async function run() {
     port: 8000,
   });
 
-  const hat = await haberdasher.makeHat({
+  const hat = await haberdasher.MakeHat({
     inches: 42
   });
 
