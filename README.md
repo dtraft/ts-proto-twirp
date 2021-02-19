@@ -1,6 +1,7 @@
 # ts-proto-twirp
 
 ![npm](https://img.shields.io/npm/v/ts-proto-twirp) 
+[![Build](https://github.com/dtraft/ts-proto-twirp/actions/workflows/build.yml/badge.svg)](https://github.com/dtraft/ts-proto-twirp/actions/workflows/build.yml) 
 [![Coverage Status](https://coveralls.io/repos/github/dtraft/ts-proto-twirp/badge.svg?branch=master)](https://coveralls.io/github/dtraft/ts-proto-twirp?branch=master)
 
 ts-proto-twirp is a TypeScript code generator for [Twirp](https://github.com/twitchtv/twirp) servers and clients.
