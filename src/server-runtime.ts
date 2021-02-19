@@ -79,12 +79,12 @@ export async function handleRequest<T>(
 export function getRequestData(req: http.IncomingMessage): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
-    req.on('data', chunk => chunks.push(chunk));
+    req.on('data', (chunk) => chunks.push(chunk));
     req.on('end', async () => {
       const data = Buffer.concat(chunks);
       resolve(data);
     });
-    req.on('error', err => {
+    req.on('error', (err) => {
       reject(err);
     });
   });

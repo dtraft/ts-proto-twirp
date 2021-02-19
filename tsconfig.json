@@ -8,9 +8,16 @@
     "esModuleInterop": true,
     "baseUrl": "./",
     "paths": {
-      "ts-twirp": ["./src"],
-      "ts-twirp/*": ["./src/*"]
+      "ts-proto-twirp": ["./src"],
+      "ts-proto-twirp/*": ["./src/*"]
     },
+    "typeRoots": [
+      "./declarations/",
+      "./node_modules/@types/"
+    ]
   },
-  "exclude": ["./test", "./dist"]
+  "exclude": ["./test", "./dist"],
+  "ts-node": {
+    "files": true
+  }
 }

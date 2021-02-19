@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/camelcase */
-import { jsonToMessageProperties } from './client';
+import { jsonToMessageProperties } from 'ts-proto-twirp';
 
 test('converting JSON responses to message properties', () => {
   const response = Buffer.from(

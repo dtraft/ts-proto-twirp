@@ -6,9 +6,12 @@ import { readFileSync, writeFileSync } from 'fs';
 import * as Handlebars from 'handlebars';
 import * as descriptor from 'protobufjs/ext/descriptor';
 import 'protobufjs/ext/descriptor';
-import { pbjs, pbts } from 'protobufjs/cli';
+import { protoc } from 'protoc';
+import util from 'util';
 
-Handlebars.registerHelper('lowercase', function(text: string) {
+const asyncProtoc = util.promisify(protoc);
+
+Handlebars.registerHelper('lowercase', function (text: string) {
   return text.charAt(0).toLocaleLowerCase() + text.slice(1);
 });
 
@@ -19,7 +22,10 @@ interface RootWithToDescriptor extends Root {
 type Protofile = Message<descriptor.IFileDescriptorSet>;
 
 async function run(): Promise<void> {
-  const protofilePath = process.argv[2];
+  const args = process.argv;
+  args.splice(0, 2);
+  const [protofilePath, ...tsProtoOpts] = args;
+
   if (!protofilePath) {
     throw new Error('Provide the path to a service.proto file');
   }
@@ -29,19 +35,22 @@ async function run(): Promise<void> {
     throw new Error('Path must point to a .proto file');
   }
 
-  const runtimeJSPath = `${fileParts.dir}/${fileParts.name}.pb.js`;
-  const typeDefsPath = `${fileParts.dir}/${fileParts.name}.pb.d.ts`;
-  pbjs.main(['-t', 'static-module', '-w', 'commonjs', '-o', runtimeJSPath, protofilePath]);
-  pbts.main(['-o', typeDefsPath, runtimeJSPath]);
+  await asyncProtoc(
+    [
+      '--plugin=./node_modules/.bin/protoc-gen-ts_proto',
+      `--ts_proto_out=.`,
+      ...tsProtoOpts,
+      '--ts_proto_opt=lowerCaseServiceMethods=false',
+      protofilePath,
+    ],
+    {},
+  );
 
   const root = await load(protofilePath);
-  root.resolveAll()
+  root.resolveAll();
   const descriptor = (root as RootWithToDescriptor).toDescriptor('proto3');
   const service = root.lookupService(getServiceName(descriptor));
-  const namespace = service.fullName
-    .split('.')
-    .slice(1, -1)
-    .join('.');
+  const namespace = service.fullName.split('.').slice(1, -1).join('.');
   const shortNamespace = namespace.split('.').slice(-1);
 
   const templateContext = {
@@ -57,21 +66,21 @@ async function run(): Promise<void> {
   await generateIndex(`${fileParts.dir}/index.ts`, templateContext);
 }
 
-function generateIndex(indexPath: string, templateContext: {}): void {
+function generateIndex(indexPath: string, templateContext: unknown): void {
   const template = readFileSync(path.join(__dirname, 'index.hbs'), 'utf8');
   const hbsTemplate = Handlebars.compile(template);
   const tsOutput = hbsTemplate(templateContext);
   writeFileSync(indexPath, tsOutput);
 }
 
-async function generateServer(tsServerPath: string, templateContext: {}): Promise<void> {
+async function generateServer(tsServerPath: string, templateContext: unknown): Promise<void> {
   const template = readFileSync(path.join(__dirname, 'server.hbs'), 'utf8');
   const hbsTemplate = Handlebars.compile(template);
   const tsOutput = hbsTemplate(templateContext);
   writeFileSync(tsServerPath, tsOutput);
 }
 
-async function generateClient(tsClientPath: string, templateContext: {}): Promise<void> {
+async function generateClient(tsClientPath: string, templateContext: unknown): Promise<void> {
   const template = readFileSync(path.join(__dirname, 'client.hbs'), 'utf8');
   const hbsTemplate = Handlebars.compile(template);
   const tsOutput = hbsTemplate(templateContext);

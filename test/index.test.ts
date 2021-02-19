@@ -1,13 +1,14 @@
-import * as pb from './service.pb';
-import Example = pb.twitch.twirp.example;
 import { AsyncServer } from './async-server';
-import request from 'request-promise-native';
+import fetch from 'node-fetch';
+
 import {
   createHaberdasherProtobufClient,
   createHaberdasherHandler,
   haberdasherPathPrefix,
+  createHaberdasherJSONClient,
+  Haberdasher,
+  Size,
 } from './index';
-import { createHaberdasherJSONClient, Haberdasher } from './client';
 
 let protobufClient: Haberdasher;
 let jsonClient: Haberdasher;
@@ -33,7 +34,7 @@ afterAll(async () => {
 
 test('Handling a Twirp protobuf call', async () => {
   server.handler = createHaberdasherHandler({
-    makeHat(size: Example.Size) {
+    makeHat(size: Size) {
       return {
         color: 'red',
         name: 'fancy hat',
@@ -42,7 +43,7 @@ test('Handling a Twirp protobuf call', async () => {
     },
   });
 
-  const response = await protobufClient.makeHat({
+  const response = await protobufClient.MakeHat({
     inches: 42,
   });
 
@@ -55,7 +56,7 @@ test('Handling a Twirp protobuf call', async () => {
 
 test('Handling a Twirp JSON call', async () => {
   server.handler = createHaberdasherHandler({
-    makeHat(size: Example.Size) {
+    makeHat(size: Size) {
       return {
         color: 'red',
         name: 'fancy hat',
@@ -64,7 +65,7 @@ test('Handling a Twirp JSON call', async () => {
     },
   });
 
-  const response = await jsonClient.makeHat({
+  const response = await jsonClient.MakeHat({
     inches: 42,
   });
 
@@ -77,12 +78,12 @@ test('Handling a Twirp JSON call', async () => {
 
 test('Protobuf error is returned as JSON', async () => {
   server.handler = createHaberdasherHandler({
-    makeHat(/* size: Example.Size */) {
+    makeHat(/* size: Size */) {
       throw new Error('thrown!');
     },
   });
 
-  const request = protobufClient.makeHat({
+  const request = protobufClient.MakeHat({
     inches: 42,
   });
 
@@ -96,7 +97,7 @@ test('Protobuf error is returned as JSON', async () => {
 
 test('Missing route returns 404', async () => {
   server.handler = createHaberdasherHandler({
-    makeHat(size: Example.Size) {
+    makeHat(size: Size) {
       return {
         color: 'red',
         name: 'fancy hat',
@@ -105,21 +106,19 @@ test('Missing route returns 404', async () => {
     },
   });
 
-  const response = await request(`http://localhost:8000${haberdasherPathPrefix}MakePants`, {
+  const response = await fetch(`http://localhost:8000${haberdasherPathPrefix}MakePants`, {
     body: JSON.stringify({
       inches: 42,
     }),
     headers: {
       'Content-Type': 'application/json',
     },
-    resolveWithFullResponse: true,
-    simple: false,
     method: 'POST',
   });
 
-  expect(response.statusCode).toEqual(404);
-  expect(response.headers['content-type']).toEqual('application/json');
-  const body = JSON.parse(response.body);
+  expect(response.status).toEqual(404);
+  expect(response.headers.get('content-type')).toEqual('application/json');
+  const body = JSON.parse(await response.text());
   expect(body).toEqual({
     code: 'bad_route',
     msg: `no handler for path ${haberdasherPathPrefix}MakePants`,
@@ -128,7 +127,7 @@ test('Missing route returns 404', async () => {
 
 test('Unknown content type returns 404', async () => {
   server.handler = createHaberdasherHandler({
-    makeHat(size: Example.Size) {
+    makeHat(size: Size) {
       return {
         color: 'red',
         name: 'fancy hat',
@@ -137,21 +136,19 @@ test('Unknown content type returns 404', async () => {
     },
   });
 
-  const response = await request(`http://localhost:8000${haberdasherPathPrefix}MakeHat`, {
+  const response = await fetch(`http://localhost:8000${haberdasherPathPrefix}MakeHat`, {
     body: JSON.stringify({
       inches: 42,
     }),
     headers: {
       'Content-Type': 'image/png',
     },
-    resolveWithFullResponse: true,
-    simple: false,
     method: 'POST',
   });
 
-  expect(response.statusCode).toEqual(404);
-  expect(response.headers['content-type']).toEqual('application/json');
-  const body = JSON.parse(response.body);
+  expect(response.status).toEqual(404);
+  expect(response.headers.get('content-type')).toEqual('application/json');
+  const body = JSON.parse(await response.text());
   expect(body).toEqual({
     code: 'bad_route',
     msg: 'unexpected Content-Type: image/png',
@@ -160,7 +157,7 @@ test('Unknown content type returns 404', async () => {
 
 test('Non POST verb returns 404', async () => {
   server.handler = createHaberdasherHandler({
-    makeHat(size: Example.Size) {
+    makeHat(size: Size) {
       return {
         color: 'red',
         name: 'fancy hat',
@@ -169,21 +166,16 @@ test('Non POST verb returns 404', async () => {
     },
   });
 
-  const response = await request(`http://localhost:8000${haberdasherPathPrefix}MakeHat`, {
-    body: JSON.stringify({
-      inches: 42,
-    }),
+  const response = await fetch(`http://localhost:8000${haberdasherPathPrefix}MakeHat`, {
     headers: {
       'Content-Type': 'application/json',
     },
-    resolveWithFullResponse: true,
-    simple: false,
     method: 'GET',
   });
 
-  expect(response.statusCode).toEqual(404);
-  expect(response.headers['content-type']).toEqual('application/json');
-  const body = JSON.parse(response.body);
+  expect(response.status).toEqual(404);
+  expect(response.headers.get('content-type')).toEqual('application/json');
+  const body = JSON.parse(await response.text());
   expect(body).toEqual({
     code: 'bad_route',
     msg: 'unsupported method GET (only POST is allowed)',

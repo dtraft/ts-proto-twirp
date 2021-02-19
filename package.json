@@ -1,23 +1,24 @@
 {
-  "name": "ts-twirp",
-  "version": "1.1.3",
-  "description": "Generate a TypesScript Twirp server",
+  "name": "ts-proto-twirp",
+  "version": "1.0.0",
+  "description": "Generate a TypeScript Twirp server using ts-proto",
   "main": "dist/index.js",
-  "repository": "https://github.com/mitchlloyd/ts-twirp",
-  "author": "Mitch Lloyd <mitch.lloyd@gmail.com>",
+  "repository": "https://github.com/dtraft/ts-proto-twirp",
+  "author": "Drew Trafton <dtraft@gmail.com>",
   "license": "Apache-2.0",
   "bin": {
-    "ts-twirp": "dist/run.js"
+    "ts-proto-twirp": "dist/run.js"
   },
   "dependencies": {
-    "@typescript-eslint/eslint-plugin": "^2.14.0",
-    "@typescript-eslint/parser": "^2.14.0",
+    "@typescript-eslint/eslint-plugin": "^4.15.1",
+    "@typescript-eslint/parser": "^4.15.1",
     "eslint": "^6.8.0",
-    "espree": "^3.5.4",
+    "espree": "^7.3.1",
     "handlebars": "^4.5.3",
     "jsdoc": "^3.6.3",
-    "protobufjs": "6.8.8",
-    "tmp": "0.0.33"
+    "protobufjs": "^6.10.2",
+    "tmp": "0.0.33",
+    "ts-proto": "^1.65.0"
   },
   "files": [
     "dist/**/*"
@@ -26,21 +27,26 @@
     "@types/ejs": "^2.6.0",
     "@types/jest": "^23.3.10",
     "@types/node": "^10.12.11",
-    "@types/request": "^2.48.1",
-    "@types/request-promise-native": "^1.0.15",
-    "jest": "^24.7.1",
-    "prettier": "1.17.1",
-    "ts-jest": "^24.0.2",
-    "ts-node": "^7.0.1",
-    "ts-protoc-gen": "^0.8.0",
-    "typescript": "^3.2.1"
+    "@types/node-fetch": "^2.5.8",
+    "@types/request-promise-native": "^1.0.17",
+    "jest": "^26.6.3",
+    "node-fetch": "^2.6.1",
+    "prettier": "2.2.1",
+    "protoc": "^1.0.4",
+    "request-promise-native": "^1.0.9",
+    "ts-jest": "^26.5.1",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.5"
   },
   "scripts": {
-    "test:gen": "./node_modules/.bin/ts-node src/run.ts -- ./test/service.proto",
-    "test": "npm run test:gen && npx jest",
-    "lint": "npx eslint . --ext .ts",
-    "dist:cp-templates": "find src -name '*.hbs' -exec cp {} dist \\;",
-    "dist": "rm -rf ./dist && tsc && npm run dist:cp-templates",
-    "prerelease": "npm run test && npm run dist"
+    "lint": "eslint . --ext .ts",
+    "prettier": "prettier --write {src,test}/**/*.ts",
+    "prettier:check": "prettier --check {src,test}/**/*.ts",
+    "test": "npm run test:gen && jest",
+    "test:coverage": "npm run test:gen && jest --coverage",
+    "test:gen": "ts-node src/run.ts ./test/service.proto",
+    "build": "rm -rf ./dist && tsc && npm run build:templates",
+    "build:templates": "find src -name '*.hbs' -exec cp {} dist \\;",
+    "prerelease": "npm run test && npm run build"
   }
 }

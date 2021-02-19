@@ -23,7 +23,7 @@ export class AsyncServer {
   }
 
   listen(): Promise<AsyncServer> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.server.listen(8000, () => {
         resolve(this);
       });

@@ -1,6 +1,5 @@
-import pb from './{{protoFilename}}.pb';
-import {{shortNamespace}} = pb.{{namespace}};
-import { createProtobufRPCImpl, createJSONRPCImpl, JSONRPCImpl } from 'ts-twirp';
+import * as pb from './{{protoFilename}}';
+import { createProtobufRPCImpl, createJSONRPCImpl, JSONRPCImpl } from 'ts-proto-twirp';
 
 interface Create{{service}}ClientParams {
   /**
@@ -16,19 +15,18 @@ interface Create{{service}}ClientParams {
 
 export function create{{service}}ProtobufClient(
   params: Create{{service}}ClientParams
-): {{service}} {
+): pb.{{service}} {
   const rpcImpl = createProtobufRPCImpl({
     host: params.host,
-    port: params.port,
-    path: '/twirp/{{namespace}}.{{service}}/',
+    port: params.port
   });
 
-  return {{shortNamespace}}.{{service}}.create(rpcImpl, false, false);
+  return new pb.{{service}}ClientImpl(rpcImpl)
 }
 
 export function create{{service}}JSONClient(
   params: Create{{service}}ClientParams
-): {{service}} {
+): pb.{{service}} {
   const rpcImpl = createJSONRPCImpl({
     host: params.host,
     port: params.port,
@@ -38,13 +36,7 @@ export function create{{service}}JSONClient(
   return new {{service}}JSONClient(rpcImpl);
 }
 
-export interface {{service}} {
-  {{#each methods as |method|}}
-  {{lowercase method.name}}(request: {{../shortNamespace}}.I{{method.requestType}}): Promise<{{../shortNamespace}}.{{method.responseType}}>;
-  {{/each}}
-}
-
-export class {{service}}JSONClient implements {{service}} {
+export class {{service}}JSONClient implements pb.{{service}} {
   private rpcImpl: JSONRPCImpl;
 
   constructor(rpcImpl: JSONRPCImpl) {
@@ -52,15 +44,11 @@ export class {{service}}JSONClient implements {{service}} {
   }
   {{#each methods as |method|}}
 
-  public async {{lowercase method.name}}(request: {{../shortNamespace}}.I{{method.requestType}}): Promise<{{../shortNamespace}}.{{method.responseType}}> {
-    const requestMessage = {{../shortNamespace}}.{{method.requestType}}.create(request);
+  public async {{method.name}}(request: pb.{{method.requestType}}): Promise<pb.{{method.responseType}}> {
+    const requestMessage = pb.{{method.requestType}}.toJSON(request);
     const response = await this.rpcImpl(requestMessage, '{{method.name}}');
-    const verificationError = {{../shortNamespace}}.{{method.responseType}}.verify(response);
-    if (verificationError) {
-      return Promise.reject(verificationError);
-    }
 
-    return {{../shortNamespace}}.{{method.responseType}}.create(response);
+    return pb.{{method.responseType}}.fromJSON(response);
   }
   {{/each}}
 }

@@ -1,6 +1,6 @@
-import * as pb from './{{protoFilename}}.pb';
+import * as pb from './{{protoFilename}}';
 import * as http from 'http';
-import { TwirpContentType, handleRequest } from 'ts-twirp';
+import { TwirpContentType, handleRequest } from 'ts-proto-twirp';
 
 type MaybePromise<T> = Promise<T> | T;
 
@@ -8,7 +8,7 @@ export const {{lowercase service}}PathPrefix = '/twirp/{{namespace}}.{{service}}
 
 export interface RPCHandlers {
   {{#each methods as |method|}}
-  {{lowercase method.name}}(request: pb.{{../namespace}}.{{method.requestType}}): MaybePromise<pb.{{../namespace}}.I{{method.responseType}}>;
+  {{lowercase method.name}}(request: pb.{{method.requestType}}): MaybePromise<pb.{{method.responseType}}>;
   {{/each}}
 }
 
@@ -31,15 +31,15 @@ function route(url: string | undefined, contentType: TwirpContentType) {
 {{#each methods as |method|}}
 
 async function handleProtobuf{{method.name}}(data: Buffer, handlers: RPCHandlers): Promise<Uint8Array> {
-  const request = pb.{{../namespace}}.{{method.requestType}}.decode(data);
+  const request = pb.{{method.requestType}}.decode(data);
   const response = await handlers.{{lowercase method.name}}(request);
-  return pb.{{../namespace}}.{{method.responseType}}.encode(response).finish();
+  return pb.{{method.responseType}}.encode(response).finish();
 }
 
 async function handleJSON{{method.name}}(data: Buffer, handlers: RPCHandlers): Promise<string> {
   const json = JSON.parse(data.toString('utf8'));
-  const request = pb.{{../namespace}}.{{method.requestType}}.fromObject(json);
+  const request = pb.{{method.requestType}}.fromJSON(json);
   const response = await handlers.{{lowercase method.name}}(request);
-  return JSON.stringify(pb.{{../namespace}}.{{method.responseType}}.create(response));
+  return JSON.stringify(pb.{{method.responseType}}.toJSON(response));
 }
 {{/each}}
