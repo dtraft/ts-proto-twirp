@@ -35,15 +35,27 @@ async function run(): Promise<void> {
     throw new Error('Path must point to a .proto file');
   }
 
+  const optionBlacklist = [
+    `context=true`,
+    'lowerCaseServiceMethods=true',
+      'outputEncodeMethods=false',
+      'outputJsonMethods=false'
+  ]
+
+  if(optionBlacklist.filter(x => args.includes(`--ts_proto_opt=${x}`)).length > 0){
+    throw Error(`The following ts-proto options are not currently supported: ${optionBlacklist.join(",")}`)
+  }
+
+  const tsProtoPath = path.resolve('node_modules', '.bin', 'protoc-gen-ts_proto')
+
   await asyncProtoc(
     [
-      '--plugin=./node_modules/.bin/protoc-gen-ts_proto',
+      `--plugin=${tsProtoPath}`,
       `--ts_proto_out=.`,
       ...tsProtoOpts,
-      '--ts_proto_opt=lowerCaseServiceMethods=false',
-      protofilePath,
+      fileParts.base,
     ],
-    {},
+    { cwd: fileParts.dir },
   );
 
   const root = await load(protofilePath);
