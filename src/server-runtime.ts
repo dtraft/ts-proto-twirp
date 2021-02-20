@@ -72,7 +72,7 @@ export async function handleRequest<T>(
     return;
   }
 
-  res.setHeader('Content-Type', contentType);
+  res.setHeader('Content-Type', contentTypeMimeType);
   res.end(responseData);
 }
 
