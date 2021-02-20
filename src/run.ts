@@ -38,23 +38,20 @@ async function run(): Promise<void> {
   const optionBlacklist = [
     `context=true`,
     'lowerCaseServiceMethods=true',
-      'outputEncodeMethods=false',
-      'outputJsonMethods=false'
-  ]
+    'outputEncodeMethods=false',
+    'outputJsonMethods=false',
+  ];
 
-  if(optionBlacklist.filter(x => args.includes(`--ts_proto_opt=${x}`)).length > 0){
-    throw Error(`The following ts-proto options are not currently supported: ${optionBlacklist.join(",")}`)
+  if (optionBlacklist.filter((x) => args.includes(`--ts_proto_opt=${x}`)).length > 0) {
+    throw Error(
+      `The following ts-proto options are not currently supported: ${optionBlacklist.join(',')}`,
+    );
   }
 
-  const tsProtoPath = path.resolve('node_modules', '.bin', 'protoc-gen-ts_proto')
+  const tsProtoPath = path.resolve('node_modules', '.bin', 'protoc-gen-ts_proto');
 
   await asyncProtoc(
-    [
-      `--plugin=${tsProtoPath}`,
-      `--ts_proto_out=.`,
-      ...tsProtoOpts,
-      fileParts.base,
-    ],
+    [`--plugin=${tsProtoPath}`, `--ts_proto_out=.`, ...tsProtoOpts, fileParts.base],
     { cwd: fileParts.dir },
   );
 
